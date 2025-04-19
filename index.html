@@ -57,4 +57,123 @@
       font-family: sans-serif;
       font-size: 18px;
       opacity: 0;
-      transition
+      transition: opacity 0.3s;
+    }
+    body:hover .controls,
+    body:hover #speedDisplay {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<img id="viewer" src="" alt="Diaporama image">
+
+<div id="speedDisplay">Vitesse : 5s</div>
+
+<div class="controls">
+  <button onclick="prevImage()">⏮️ Précédente</button>
+  <button onclick="togglePause()">⏯️ Pause/Play</button>
+  <button onclick="nextImage()">⏭️ Suivante</button>
+  <button onclick="changeSpeed(-1000)">🐢 Ralentir</button>
+  <button onclick="changeSpeed(1000)">🐇 Accélérer</button>
+  <button onclick="toggleFullscreen()">🖥️ Plein écran</button>
+  <button onclick="toggleKenBurns()">🎞️ Ken Burns</button>
+  <button onclick="toggleRandom()">🔀 Aléatoire</button>
+</div>
+
+<script>
+  let images = [];
+  let index = 0;
+  let paused = false;
+  let interval = 5000;
+  let timer;
+  let kenburns = false;
+  let random = false;
+
+  // Fallback : local d'abord, sinon depuis raw.githubusercontent
+  fetch('images.json')
+    .then(res => {
+      if (!res.ok) {
+        return fetch('https://raw.githubusercontent.com/EmericVaudois/Tumblr-Diaporama/main/images.json');
+      }
+      return res;
+    })
+    .then(res => res.json())
+    .then(data => {
+      images = data;
+      showImage(index);
+      timer = setInterval(nextImage, interval);
+      updateSpeedDisplay();
+    });
+
+  function showImage(i) {
+    const viewer = document.getElementById('viewer');
+    viewer.classList.remove('kenburns');
+    viewer.style.opacity = 0;
+    setTimeout(() => {
+      viewer.src = images[i];
+      viewer.style.opacity = 1;
+      if (kenburns) viewer.classList.add('kenburns');
+    }, 500);
+  }
+
+  function nextImage() {
+    if (!paused) {
+      if (random) {
+        index = Math.floor(Math.random() * images.length);
+      } else {
+        index = (index + 1) % images.length;
+      }
+      showImage(index);
+    }
+  }
+
+  function prevImage() {
+    index = (index - 1 + images.length) % images.length;
+    showImage(index);
+  }
+
+  function togglePause() {
+    paused = !paused;
+  }
+
+  function changeSpeed(delta) {
+    interval = Math.max(1000, interval + delta);
+    clearInterval(timer);
+    if (!paused) {
+      timer = setInterval(nextImage, interval);
+    }
+    updateSpeedDisplay();
+  }
+
+  function updateSpeedDisplay() {
+    const speedElem = document.getElementById('speedDisplay');
+    speedElem.textContent = `Vitesse : ${Math.round(interval / 1000)}s`;
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function toggleKenBurns() {
+    kenburns = !kenburns;
+    const viewer = document.getElementById('viewer');
+    if (kenburns) {
+      viewer.classList.add('kenburns');
+    } else {
+      viewer.classList.remove('kenburns');
+    }
+  }
+
+  function toggleRandom() {
+    random = !random;
+  }
+</script>
+
+</body>
+</html>
