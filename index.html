@@ -8,6 +8,7 @@
       margin: 0;
       background: black;
       overflow: hidden;
+      cursor: none;
     }
     #viewer {
       position: fixed;
@@ -22,12 +23,15 @@
       animation: kenburns 20s ease-in-out infinite alternate;
     }
     @keyframes kenburns {
-      0% {
-        transform: scale(1) translate(0, 0);
-      }
-      100% {
-        transform: scale(1.1) translate(2%, 2%);
-      }
+      0% { transform: scale(1) translate(0, 0); }
+      100% { transform: scale(1.1) translate(2%, 2%); }
+    }
+    .controls, #speedDisplay {
+      transition: opacity 0.3s;
+      opacity: 0;
+    }
+    .controls.show, #speedDisplay.show {
+      opacity: 1;
     }
     .controls {
       position: fixed;
@@ -36,10 +40,9 @@
       transform: translateX(-50%);
       display: flex;
       gap: 10px;
-      opacity: 0;
-      transition: opacity 0.3s;
       flex-wrap: wrap;
       justify-content: center;
+      z-index: 10;
     }
     .controls button {
       background: rgba(255,255,255,0.1);
@@ -50,18 +53,13 @@
     }
     #speedDisplay {
       position: fixed;
-      bottom: 70px;
+      bottom: 90px;
       left: 50%;
       transform: translateX(-50%);
       color: white;
       font-family: sans-serif;
       font-size: 18px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    body:hover .controls,
-    body:hover #speedDisplay {
-      opacity: 1;
+      z-index: 10;
     }
   </style>
 </head>
@@ -82,9 +80,7 @@
   <button onclick="toggleRandom()">🔀 Aléatoire</button>
 </div>
 
-<!-- chargement des images directement depuis le script -->
 <script src="images.js"></script>
-
 <script>
   let images = imageData;
   let index = 0;
@@ -94,8 +90,11 @@
   let kenburns = false;
   let random = false;
 
+  const viewer = document.getElementById('viewer');
+  const speedDisplay = document.getElementById('speedDisplay');
+  const controls = document.querySelector('.controls');
+
   function showImage(i) {
-    const viewer = document.getElementById('viewer');
     viewer.classList.remove('kenburns');
     viewer.style.opacity = 0;
     setTimeout(() => {
@@ -143,8 +142,7 @@
   }
 
   function updateSpeedDisplay() {
-    const speedElem = document.getElementById('speedDisplay');
-    speedElem.textContent = `Vitesse : ${Math.round(interval / 1000)}s`;
+    speedDisplay.textContent = `Vitesse : ${Math.round(interval / 1000)}s`;
   }
 
   function toggleFullscreen() {
@@ -157,7 +155,6 @@
 
   function toggleKenBurns() {
     kenburns = !kenburns;
-    const viewer = document.getElementById('viewer');
     if (kenburns) {
       viewer.classList.add('kenburns');
     } else {
@@ -168,6 +165,23 @@
   function toggleRandom() {
     random = !random;
   }
+
+  // 🖱️ Masquer/afficher les contrôles après inactivité
+  let hideTimeout;
+
+  function showControlsTemporarily() {
+    controls.classList.add('show');
+    speedDisplay.classList.add('show');
+    document.body.style.cursor = 'default';
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      controls.classList.remove('show');
+      speedDisplay.classList.remove('show');
+      document.body.style.cursor = 'none';
+    }, 3000);
+  }
+
+  document.addEventListener("mousemove", showControlsTemporarily);
 </script>
 
 </body>
