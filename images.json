@@ -1,4 +1,4 @@
-[
+const imageData = [
   "https://64.media.tumblr.com/6aeffb8ea029ab2a4f8f58d370709d9e/f7d4da4f2a4c91ae-8a/s500x750/32bad4af73440939e602924298f5bffe112998a1.jpg",
   "https://64.media.tumblr.com/cfd04bb14b1c81b99f37b78608d3b00c/474372938b8230fd-11/s500x750/6d4af3405a03785af5cc2cd1f941f97a61d37ff6.jpg",
   "https://64.media.tumblr.com/4ade52550177aa70c328477443ad8331/e26369897c8718dc-26/s500x750/a9749639bded068390c0ff12ef7e0b56d483109d.jpg",
