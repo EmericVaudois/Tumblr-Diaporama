@@ -18,6 +18,17 @@
       background-color: black;
       transition: opacity 1s ease-in-out;
     }
+    .kenburns {
+      animation: kenburns 20s ease-in-out infinite alternate;
+    }
+    @keyframes kenburns {
+      0% {
+        transform: scale(1) translate(0, 0);
+      }
+      100% {
+        transform: scale(1.1) translate(2%, 2%);
+      }
+    }
     .controls {
       position: fixed;
       bottom: 20px;
@@ -46,92 +57,4 @@
       font-family: sans-serif;
       font-size: 18px;
       opacity: 0;
-      transition: opacity 0.3s;
-    }
-    body:hover .controls,
-    body:hover #speedDisplay {
-      opacity: 1;
-    }
-  </style>
-</head>
-<body>
-
-<img id="viewer" src="" alt="Diaporama image">
-
-<div id="speedDisplay">Vitesse : 5s</div>
-
-<div class="controls">
-  <button onclick="prevImage()">⏮️ Précédente</button>
-  <button onclick="togglePause()">⏯️ Pause/Play</button>
-  <button onclick="nextImage()">⏭️ Suivante</button>
-  <button onclick="changeSpeed(-1000)">🐢 Ralentir</button>
-  <button onclick="changeSpeed(1000)">🐇 Accélérer</button>
-  <button onclick="toggleFullscreen()">🖥️ Plein écran</button>
-</div>
-
-<script>
-  let images = [];
-  let index = 0;
-  let paused = false;
-  let interval = 5000;
-  let timer;
-
-  fetch('images.json')
-    .then(res => res.json())
-    .then(data => {
-      images = data;
-      showImage(index);
-      timer = setInterval(nextImage, interval);
-      updateSpeedDisplay();
-    });
-
-  function showImage(i) {
-    const viewer = document.getElementById('viewer');
-    viewer.style.opacity = 0;
-    setTimeout(() => {
-      viewer.src = images[i];
-      viewer.style.opacity = 1;
-    }, 500);
-  }
-
-  function nextImage() {
-    if (!paused) {
-      index = (index + 1) % images.length;
-      showImage(index);
-    }
-  }
-
-  function prevImage() {
-    index = (index - 1 + images.length) % images.length;
-    showImage(index);
-  }
-
-  function togglePause() {
-    paused = !paused;
-  }
-
-  function changeSpeed(delta) {
-    interval = Math.max(1000, interval + delta); // min 1s
-    clearInterval(timer);
-    if (!paused) {
-      timer = setInterval(nextImage, interval);
-    }
-    updateSpeedDisplay();
-  }
-
-  function updateSpeedDisplay() {
-    const speedElem = document.getElementById('speedDisplay');
-    speedElem.textContent = `Vitesse : ${Math.round(interval / 1000)}s`;
-  }
-
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  }
-</script>
-
-</body>
-</html>
+      transition
