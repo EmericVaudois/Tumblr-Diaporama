@@ -4,247 +4,111 @@
   <meta charset="UTF-8">
   <title>Diaporama Tumblr</title>
   <style>
-    body {
+    html, body {
       margin: 0;
       background: black;
       overflow: hidden;
-      font-family: sans-serif;
     }
-
-    #slideshow {
+    #viewer {
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 100vw;
       height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: black;
-    }
-
-    #slideshow img {
-      width: 100%;
-      height: 100%;
       object-fit: contain;
-      object-position: center;
-      position: absolute;
-      opacity: 0;
-      transition: opacity 1s ease-in-out, transform 20s ease-in-out;
-      background: black;
+      background-color: black;
+      transition: opacity 1s ease-in-out;
     }
-
-    #slideshow img.active {
-      opacity: 1;
-      z-index: 10;
-    }
-
-    #slideshow img.kenburns {
-      transform: scale(1.1);
-    }
-
-    #controls {
+    .controls {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 10px 15px;
-      border-radius: 8px;
-      z-index: 999;
-      backdrop-filter: blur(6px);
       opacity: 0;
-      transition: opacity 0.5s ease;
-      pointer-events: none;
+      transition: opacity 0.3s;
     }
-
-    #controls.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    #controls button {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
+    .controls button {
+      background: rgba(255,255,255,0.1);
       color: white;
-      transition: background 0.3s ease;
+      border: 1px solid white;
+      padding: 10px;
+      cursor: pointer;
     }
-
-    #controls button:hover {
-      background: rgba(255, 255, 255, 0.3);
+    body:hover .controls {
+      opacity: 1;
     }
   </style>
 </head>
 <body>
-  <div id="slideshow"></div>
 
-  <div id="controls">
-    <button id="prev">⏮️</button>
-    <button id="playPause">⏸️</button>
-    <button id="next">⏭️</button>
-    <button id="slower">⏪</button>
-    <button id="faster">⏩</button>
-    <button id="shuffle">🔀</button>
-    <button id="kenburns">🎞️ Ken Burns</button>
-    <button id="fullscreen">⛶</button>
-  </div>
+<img id="viewer" src="" alt="Diaporama image">
 
-  <script>
-    const FEED_URL = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://deamisartemis.tumblr.com/rss');
-    let interval = 5000;
-    let timer;
-    let isPlaying = true;
-    let current = 0;
-    let images = [];
-    let kenBurnsOn = false;
+<div class="controls">
+  <button onclick="prevImage()">⏮️ Précédente</button>
+  <button onclick="togglePause()">
+    ⏯️ Pause/Play
+  </button>
+  <button onclick="nextImage()">⏭️ Suivante</button>
+  <button onclick="changeSpeed(-1000)">🐢 Ralentir</button>
+  <button onclick="changeSpeed(1000)">🐇 Accélérer</button>
+  <button onclick="toggleFullscreen()">🖥️ Plein écran</button>
+</div>
 
-    function showImage(index) {
-      images.forEach((img, i) => {
-        img.classList.remove('active', 'kenburns');
-        if (i === index) {
-          img.classList.add('active');
-          if (kenBurnsOn) img.classList.add('kenburns');
-        }
-      });
-    }
+<script>
+  let images = [];
+  let index = 0;
+  let paused = false;
+  let interval = 5000;
+  let timer;
 
-    function nextImage() {
-      current = (current + 1) % images.length;
-      showImage(current);
-    }
-
-    function prevImage() {
-      current = (current - 1 + images.length) % images.length;
-      showImage(current);
-    }
-
-    function startSlideshow() {
-      stopSlideshow();
+  fetch('images.json')
+    .then(res => res.json())
+    .then(data => {
+      images = data;
+      showImage(index);
       timer = setInterval(nextImage, interval);
+    });
+
+  function showImage(i) {
+    const viewer = document.getElementById('viewer');
+    viewer.style.opacity = 0;
+    setTimeout(() => {
+      viewer.src = images[i];
+      viewer.style.opacity = 1;
+    }, 500);
+  }
+
+  function nextImage() {
+    if (!paused) {
+      index = (index + 1) % images.length;
+      showImage(index);
     }
+  }
 
-    function stopSlideshow() {
-      clearInterval(timer);
+  function prevImage() {
+    index = (index - 1 + images.length) % images.length;
+    showImage(index);
+  }
+
+  function togglePause() {
+    paused = !paused;
+  }
+
+  function changeSpeed(delta) {
+    interval = Math.max(1000, interval + delta);
+    clearInterval(timer);
+    timer = setInterval(nextImage, interval);
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
     }
+  }
+</script>
 
-    function togglePlayPause() {
-      if (isPlaying) {
-        stopSlideshow();
-        document.getElementById("playPause").textContent = "▶️";
-      } else {
-        startSlideshow();
-        document.getElementById("playPause").textContent = "⏸️";
-      }
-      isPlaying = !isPlaying;
-    }
-
-    function changeSpeed(faster = true) {
-      interval = faster ? Math.max(1000, interval - 1000) : interval + 1000;
-      if (isPlaying) startSlideshow();
-    }
-
-    function enterFullscreen() {
-      const doc = document;
-      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-        const el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-      } else {
-        if (doc.exitFullscreen) doc.exitFullscreen();
-        else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
-      }
-    }
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    function shuffleImages() {
-      const container = document.getElementById("slideshow");
-      stopSlideshow();
-      const activeImg = images[current].src;
-      shuffleArray(images);
-      container.innerHTML = '';
-      images.forEach(img => container.appendChild(img));
-      current = images.findIndex(img => img.src === activeImg);
-      showImage(current);
-      if (isPlaying) startSlideshow();
-    }
-
-    function toggleKenBurns() {
-      kenBurnsOn = !kenBurnsOn;
-      document.getElementById("kenburns").textContent = kenBurnsOn ? "❌ Ken Burns" : "🎞️ Ken Burns";
-      showImage(current);
-    }
-
-    fetch(FEED_URL)
-      .then(res => res.json())
-      .then(data => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(data.contents, "text/xml");
-        const items = xml.querySelectorAll("item description");
-        const container = document.getElementById("slideshow");
-
-        items.forEach(desc => {
-          const tempDiv = document.createElement("div");
-          tempDiv.innerHTML = desc.textContent;
-          const img = tempDiv.querySelector("img");
-          if (img) {
-            const image = document.createElement("img");
-            image.src = img.src || img.getAttribute("srcset")?.split(",").pop().trim().split(" ")[0];
-            if (image.src) {
-              container.appendChild(image);
-              images.push(image);
-            }
-          }
-        });
-
-        if (images.length === 0) {
-          document.body.innerHTML = "<p style='color:white;text-align:center;'>Aucune image trouvée.</p>";
-          return;
-        }
-
-        showImage(current);
-        startSlideshow();
-      })
-      .catch(error => {
-        console.error("Erreur de chargement :", error);
-        document.body.innerHTML = "<p style='color:white;text-align:center;'>Erreur de chargement des images.</p>";
-      });
-
-    // Contrôles
-    document.getElementById("playPause").addEventListener("click", togglePlayPause);
-    document.getElementById("next").addEventListener("click", () => { nextImage(); if (isPlaying) startSlideshow(); });
-    document.getElementById("prev").addEventListener("click", () => { prevImage(); if (isPlaying) startSlideshow(); });
-    document.getElementById("slower").addEventListener("click", () => changeSpeed(false));
-    document.getElementById("faster").addEventListener("click", () => changeSpeed(true));
-    document.getElementById("fullscreen").addEventListener("click", enterFullscreen);
-    document.getElementById("shuffle").addEventListener("click", shuffleImages);
-    document.getElementById("kenburns").addEventListener("click", toggleKenBurns);
-
-    // Affichage des contrôles à l'activité de la souris
-    let hideControlsTimeout;
-
-    function showControls() {
-      const controls = document.getElementById("controls");
-      controls.classList.add("visible");
-      clearTimeout(hideControlsTimeout);
-      hideControlsTimeout = setTimeout(() => {
-        controls.classList.remove("visible");
-      }, 3000);
-    }
-
-    document.addEventListener("mousemove", showControls);
-  </script>
 </body>
 </html>
