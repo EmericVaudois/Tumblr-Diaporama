@@ -82,30 +82,17 @@
   <button onclick="toggleRandom()">🔀 Aléatoire</button>
 </div>
 
+<!-- chargement des images directement depuis le script -->
+<script src="images.js"></script>
+
 <script>
-  let images = [];
+  let images = imageData;
   let index = 0;
   let paused = false;
   let interval = 5000;
   let timer;
   let kenburns = false;
   let random = false;
-
-  // Fallback : local d'abord, sinon depuis raw.githubusercontent
-  fetch('images.json')
-    .then(res => {
-      if (!res.ok) {
-        return fetch('https://raw.githubusercontent.com/EmericVaudois/Tumblr-Diaporama/main/images.json');
-      }
-      return res;
-    })
-    .then(res => res.json())
-    .then(data => {
-      images = data;
-      showImage(index);
-      timer = setInterval(nextImage, interval);
-      updateSpeedDisplay();
-    });
 
   function showImage(i) {
     const viewer = document.getElementById('viewer');
@@ -117,6 +104,14 @@
       if (kenburns) viewer.classList.add('kenburns');
     }, 500);
   }
+
+  function startDiapo() {
+    showImage(index);
+    timer = setInterval(nextImage, interval);
+    updateSpeedDisplay();
+  }
+
+  document.addEventListener("DOMContentLoaded", startDiapo);
 
   function nextImage() {
     if (!paused) {
