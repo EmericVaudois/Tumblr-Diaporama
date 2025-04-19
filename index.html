@@ -27,6 +27,8 @@
       gap: 10px;
       opacity: 0;
       transition: opacity 0.3s;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .controls button {
       background: rgba(255,255,255,0.1);
@@ -35,7 +37,19 @@
       padding: 10px;
       cursor: pointer;
     }
-    body:hover .controls {
+    #speedDisplay {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-family: sans-serif;
+      font-size: 18px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover .controls,
+    body:hover #speedDisplay {
       opacity: 1;
     }
   </style>
@@ -44,11 +58,11 @@
 
 <img id="viewer" src="" alt="Diaporama image">
 
+<div id="speedDisplay">Vitesse : 5s</div>
+
 <div class="controls">
   <button onclick="prevImage()">⏮️ Précédente</button>
-  <button onclick="togglePause()">
-    ⏯️ Pause/Play
-  </button>
+  <button onclick="togglePause()">⏯️ Pause/Play</button>
   <button onclick="nextImage()">⏭️ Suivante</button>
   <button onclick="changeSpeed(-1000)">🐢 Ralentir</button>
   <button onclick="changeSpeed(1000)">🐇 Accélérer</button>
@@ -68,6 +82,7 @@
       images = data;
       showImage(index);
       timer = setInterval(nextImage, interval);
+      updateSpeedDisplay();
     });
 
   function showImage(i) {
@@ -96,9 +111,17 @@
   }
 
   function changeSpeed(delta) {
-    interval = Math.max(1000, interval + delta);
+    interval = Math.max(1000, interval + delta); // min 1s
     clearInterval(timer);
-    timer = setInterval(nextImage, interval);
+    if (!paused) {
+      timer = setInterval(nextImage, interval);
+    }
+    updateSpeedDisplay();
+  }
+
+  function updateSpeedDisplay() {
+    const speedElem = document.getElementById('speedDisplay');
+    speedElem.textContent = `Vitesse : ${Math.round(interval / 1000)}s`;
   }
 
   function toggleFullscreen() {
